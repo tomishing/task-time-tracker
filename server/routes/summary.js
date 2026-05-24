@@ -45,10 +45,8 @@ router.get('/',
                   THEN COALESCE(SUM(ts.actual_mins), 0)::float / COALESCE(SUM(wp.expected_mins), 0)
                   ELSE NULL
                 END as ratio
-         FROM time_sessions ts
-         FULL OUTER JOIN weekly_plans wp
-           ON ts.logged_date >= $1 AND ts.logged_date <= $2
-           AND wp.planned_date >= $1 AND wp.planned_date <= $2`,
+         FROM (SELECT actual_mins FROM time_sessions WHERE logged_date >= $1 AND logged_date <= $2) ts,
+              (SELECT expected_mins FROM weekly_plans WHERE planned_date >= $1 AND planned_date <= $2) wp`,
         [startDate, endDate]
       )
 
