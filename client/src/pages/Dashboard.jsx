@@ -11,6 +11,9 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { getSummary } from '../api/summary'
+import LoadingState from '../components/LoadingState'
+import ErrorState from '../components/ErrorState'
+import EmptyState from '../components/EmptyState'
 
 export default function Dashboard() {
   const [period, setPeriod] = useState('weekly')
@@ -85,16 +88,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <ErrorState error={error} onRetry={fetchSummary} />}
 
       {isLoading ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Loading...</p>
-        </div>
+        <LoadingState message="Loading dashboard..." />
       ) : summary ? (
         <>
           {/* Summary Cards */}

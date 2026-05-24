@@ -4,13 +4,18 @@ import useTaskStore from '../store/useTaskStore'
 import usePlanStore from '../store/usePlanStore'
 import { getTasks } from '../api/tasks'
 import { getPlans, createPlan, updatePlan, deletePlan } from '../api/plans'
+import LoadingSpinner from '../components/LoadingSpinner'
+import ErrorState from '../components/ErrorState'
+import EmptyState from '../components/EmptyState'
 
 export default function WeeklyPlan() {
   const [weekStart, setWeekStart] = useState(startOfWeek(new Date()))
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [tasksLoading, setTasksLoading] = useState(true)
   const [formData, setFormData] = useState({ task_id: '', planned_date: '', expected_mins: '' })
-  const [editingId, setEditingId] = useState(null)
+  const [error, setError] = useState('')
+  const [formError, setFormError] = useState('')
+  const [updateError, setUpdateError] = useState('')
 
   const tasks = useTaskStore(state => state.tasks)
   const setTasks = useTaskStore(state => state.setTasks)
@@ -28,32 +33,37 @@ export default function WeeklyPlan() {
   }, [weekStart])
 
   async function fetchTasks() {
+    setTasksLoading(true)
+    setError('')
     try {
       const data = await getTasks()
       setTasks(data)
     } catch (err) {
-      console.error('Failed to fetch tasks:', err)
+      setError(err.message || 'Failed to load tasks')
+    } finally {
+      setTasksLoading(false)
     }
   }
 
   async function fetchPlans() {
+    setError('')
     try {
       const data = await getPlans(format(weekStart, 'yyyy-MM-dd'))
       setPlans(data)
     } catch (err) {
-      console.error('Failed to fetch plans:', err)
+      setError(err.message || 'Failed to load plans')
     }
   }
 
   async function handleAddPlan(e) {
     e.preventDefault()
     if (!formData.task_id || !formData.planned_date || !formData.expected_mins) {
-      setError('Please fill in all fields')
+      setFormError('Please fill in all fields')
       return
     }
 
     setIsLoading(true)
-    setError('')
+    setFormError('')
     try {
       const newPlan = await createPlan(
         parseInt(formData.task_id),
@@ -69,30 +79,32 @@ export default function WeeklyPlan() {
       })
 
       setFormData({ task_id: '', planned_date: '', expected_mins: '' })
-      setError('')
+      setFormError('')
     } catch (err) {
-      setError(err.message || 'Failed to create plan')
+      setFormError(err.message || 'Failed to create plan')
     } finally {
       setIsLoading(false)
     }
   }
 
   async function handleUpdatePlan(id, expectedMins) {
+    setUpdateError('')
     try {
       await updatePlan(id, expectedMins)
       updatePlanInStore(id, { expected_mins: expectedMins })
     } catch (err) {
-      setError(err.message || 'Failed to update plan')
+      setUpdateError(err.message || 'Failed to update plan')
     }
   }
 
   async function handleDeletePlan(id) {
     if (!confirm('Delete this plan?')) return
+    setUpdateError('')
     try {
       await deletePlan(id)
       removePlanFromStore(id)
     } catch (err) {
-      setError(err.message || 'Failed to delete plan')
+      setUpdateError(err.message || 'Failed to delete plan')
     }
   }
 
@@ -128,23 +140,21 @@ export default function WeeklyPlan() {
         </div>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <ErrorState error={error} onRetry={fetchPlans} />}
 
       {/* Add Plan Form */}
       <div className="mb-8 p-6 bg-white rounded-lg shadow">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Task to Week</h2>
-        <form onSubmit={handleAddPlan} className="grid grid-cols-5 gap-4">
+        {formError && <ErrorState error={formError} />}
+        {updateError && <ErrorState error={updateError} />}
+        <form onSubmit={handleAddPlan} className="grid grid-cols-5 gap-4 mt-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Task</label>
             <select
               value={formData.task_id}
               onChange={e => setFormData({ ...formData, task_id: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              disabled={isLoading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              disabled={isLoading || tasksLoading}
             >
               <option value="">Select task</option>
               {tasks.map(task => (
@@ -160,7 +170,7 @@ export default function WeeklyPlan() {
             <select
               value={formData.planned_date}
               onChange={e => setFormData({ ...formData, planned_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               disabled={isLoading}
             >
               <option value="">Select date</option>
@@ -180,7 +190,7 @@ export default function WeeklyPlan() {
               step="15"
               value={formData.expected_mins}
               onChange={e => setFormData({ ...formData, expected_mins: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
               placeholder="e.g., 120"
               disabled={isLoading}
             />
@@ -190,8 +200,9 @@ export default function WeeklyPlan() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
             >
+              {isLoading && <LoadingSpinner size="sm" />}
               {isLoading ? 'Adding...' : 'Add'}
             </button>
           </div>
@@ -245,7 +256,9 @@ export default function WeeklyPlan() {
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-400 italic">No tasks planned</p>
+                <div className="text-xs text-gray-400 italic py-4">
+                  <p>No tasks</p>
+                </div>
               )}
             </div>
           </div>

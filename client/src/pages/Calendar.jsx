@@ -6,14 +6,20 @@ import useTaskStore from '../store/useTaskStore'
 import { getPlans } from '../api/plans'
 import { logSession } from '../api/sessions'
 import { getTasks } from '../api/tasks'
+import LoadingSpinner from '../components/LoadingSpinner'
+import ErrorState from '../components/ErrorState'
+import EmptyState from '../components/EmptyState'
 
 export default function Calendar() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
   const [panelOpen, setPanelOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [tasksLoading, setTasksLoading] = useState(true)
   const [formData, setFormData] = useState({ task_id: '', actual_mins: '', note: '' })
   const [error, setError] = useState('')
+  const [panelError, setPanelError] = useState('')
 
   const tasks = useTaskStore(state => state.tasks)
   const setTasks = useTaskStore(state => state.setTasks)
@@ -25,20 +31,25 @@ export default function Calendar() {
   }, [])
 
   async function fetchTasks() {
+    setTasksLoading(true)
+    setError('')
     try {
       const data = await getTasks()
       setTasks(data)
     } catch (err) {
-      console.error('Failed to fetch tasks:', err)
+      setError(err.message || 'Failed to load tasks')
+    } finally {
+      setTasksLoading(false)
     }
   }
 
   async function fetchPlansForDate(date) {
+    setPanelError('')
     try {
       const data = await getPlans(format(date, 'yyyy-MM-dd'))
       setPlans(data)
     } catch (err) {
-      console.error('Failed to fetch plans:', err)
+      setPanelError(err.message || 'Failed to load planned tasks')
     }
   }
 
@@ -53,12 +64,12 @@ export default function Calendar() {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!formData.task_id || !formData.actual_mins) {
-      setError('Please select a task and enter minutes')
+      setPanelError('Please select a task and enter minutes')
       return
     }
 
-    setIsLoading(true)
-    setError('')
+    setIsSubmitting(true)
+    setPanelError('')
     try {
       await logSession(
         parseInt(formData.task_id),
@@ -67,13 +78,13 @@ export default function Calendar() {
         formData.note
       )
       setFormData({ task_id: '', actual_mins: '', note: '' })
-      setError('')
+      setPanelError('')
       alert('Time logged successfully!')
       fetchPlansForDate(selectedDate)
     } catch (err) {
-      setError(err.message || 'Failed to log time')
+      setPanelError(err.message || 'Failed to log time')
     } finally {
-      setIsLoading(false)
+      setIsSubmitting(false)
     }
   }
 
@@ -94,24 +105,29 @@ export default function Calendar() {
         <div className="flex gap-4">
           <button
             onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            disabled={tasksLoading}
           >
             ← Prev
           </button>
           <button
             onClick={() => setCurrentDate(new Date())}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            disabled={tasksLoading}
           >
             Today
           </button>
           <button
             onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            disabled={tasksLoading}
           >
             Next →
           </button>
         </div>
       </div>
+
+      {error && <ErrorState error={error} onRetry={fetchTasks} />}
 
       {/* Calendar Grid */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -164,6 +180,8 @@ export default function Calendar() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {panelError && <ErrorState error={panelError} onRetry={() => fetchPlansForDate(selectedDate)} />}
+
               {/* Planned Tasks */}
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Planned Tasks</h3>
@@ -182,7 +200,10 @@ export default function Calendar() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm">No tasks planned for this date</p>
+                  <EmptyState
+                    title="No tasks planned"
+                    description="Visit Weekly Plan to add tasks for this date"
+                  />
                 )}
               </div>
 
@@ -190,9 +211,9 @@ export default function Calendar() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-3">Log Time</h3>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  {error && (
+                  {panelError && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-                      {error}
+                      {panelError}
                     </div>
                   )}
 
@@ -203,8 +224,8 @@ export default function Calendar() {
                     <select
                       value={formData.task_id}
                       onChange={e => setFormData({ ...formData, task_id: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      disabled={isLoading}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      disabled={isSubmitting || tasksLoading}
                     >
                       <option value="">Select a task</option>
                       {tasks.map(task => (
@@ -225,9 +246,9 @@ export default function Calendar() {
                       step="15"
                       value={formData.actual_mins}
                       onChange={e => setFormData({ ...formData, actual_mins: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                       placeholder="e.g., 60"
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                     />
                   </div>
 
@@ -238,19 +259,20 @@ export default function Calendar() {
                     <textarea
                       value={formData.note}
                       onChange={e => setFormData({ ...formData, note: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
                       placeholder="What did you work on?"
                       rows="3"
-                      disabled={isLoading}
+                      disabled={isSubmitting}
                     />
                   </div>
 
                   <button
                     type="submit"
-                    disabled={isLoading}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    disabled={isSubmitting}
+                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
                   >
-                    {isLoading ? 'Logging...' : 'Log Time'}
+                    {isSubmitting && <LoadingSpinner size="sm" />}
+                    {isSubmitting ? 'Logging...' : 'Log Time'}
                   </button>
                 </form>
               </div>
