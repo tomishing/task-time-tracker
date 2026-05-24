@@ -5,10 +5,32 @@ A full-stack time tracking application to log daily task progress, plan weekly t
 ## Features
 
 - 📅 **Calendar View**: Click any date to log actual time spent on tasks
-- 📊 **Dashboard**: Visualize time tracking with charts (daily, weekly, monthly)
-- 📋 **Weekly Plan**: Pre-plan expected time for tasks each day
-- 📈 **Ratio Tracking**: Compare actual vs. expected time spent (displayed as percentage)
-- 🏷️ **Task Categories**: Organize tasks by work, personal, health, learning, or other
+  - See all planned tasks for a day
+  - Log time with optional notes
+  - Quick task selection from master list
+
+- 📊 **Dashboard**: Visualize productivity with Recharts
+  - Toggle between Daily, Weekly, and Monthly views
+  - Bar charts by category and by task
+  - Summary cards showing totals and ratio
+  - Task breakdown table with color-coded ratios
+  - Ratio coloring: Green (≤100%), Amber (100-150%), Red (>150%)
+
+- 📋 **Weekly Plan**: Pre-plan expected time for each day
+  - Week navigation (Prev/Next/This Week)
+  - Add tasks with expected minutes
+  - 7-day grid showing all planned tasks
+  - Inline editing of expected minutes
+  - Weekly summary with totals and averages
+
+- 📈 **Ratio Tracking**: Compare actual vs. expected time
+  - Displayed as percentage (e.g., 120%)
+  - Aggregated by category, by task, and overall
+  - Visual indicators for over/under target
+
+- 🏷️ **Task Categories**: Organize tasks by type
+  - Work, Personal, Health, Learning, Other
+  - Filter and group by category in dashboard
 
 ## Tech Stack
 
@@ -172,6 +194,31 @@ CREATE TABLE time_sessions (
 );
 ```
 
+## User Workflows
+
+### 1. Plan Your Week
+1. Go to Weekly Plan page
+2. Click "Add Task to Week" form
+3. Select task, date, and expected minutes
+4. View your plan in the 7-day grid
+5. Edit expected minutes inline as needed
+
+### 2. Log Your Time (Daily)
+1. Go to Calendar page
+2. Click a date to open the side panel
+3. See all planned tasks for that day
+4. Select a task and enter actual minutes
+5. Add optional notes and submit
+
+### 3. Review Progress
+1. Go to Dashboard page
+2. Toggle between Daily, Weekly, or Monthly views
+3. Check your ratio in the summary card:
+   - **Green (≤100%)**: You're on or under target
+   - **Amber (100-150%)**: You're over-invested in this task
+   - **Red (>150%)**: You spent way more than planned
+4. Examine task breakdown table for details
+
 ## Key Concepts
 
 ### Ratio Logic
@@ -180,11 +227,39 @@ CREATE TABLE time_sessions (
 - If `expected_mins = 0`, display as `—` (no expectations set)
 - No cap on ratio — shows 150%, 200%, etc. as-is
 
+**Color Coding:**
+- **≤100%** (Green) — On target
+- **100-150%** (Amber) — Over by up to 50%
+- **>150%** (Red) — Over by more than 50%
+
 ### Date Handling
 - Frontend uses `date-fns` for date manipulation
 - Database uses `DATE` type (no timezone needed for dates)
 - Weekly view is Monday–Sunday
 - Monthly view is 1st–last day of month
+- All dates are stored in UTC and displayed in local time
+
+## Dashboard Visualizations
+
+### Summary Cards
+- **Total Actual**: Total minutes logged in the period
+- **Total Expected**: Total minutes planned in the period
+- **Ratio**: Actual ÷ Expected, with color-coded border
+
+### Bar Charts
+- **By Category**: Groups tasks by category (work, personal, health, etc.)
+  - Blue bars = actual time
+  - Gray bars = expected time
+- **By Task**: Individual task breakdown
+  - Useful for identifying which tasks take longer than planned
+
+### Task Table
+- Sortable by task name, actual, expected, or ratio
+- Color-coded ratio cells:
+  - Green background = on target
+  - Amber background = over target
+  - Red background = far over target
+- Quick reference for task-level analysis
 
 ## Development Workflow
 
@@ -193,7 +268,12 @@ CREATE TABLE time_sessions (
    git checkout -b feature/your-feature
    ```
 
-2. **Make changes** and test locally
+2. **Make changes** and test locally:
+   ```bash
+   docker compose up -d
+   # Make your changes
+   # Vite will hot-reload automatically
+   ```
 
 3. **Commit with descriptive message:**
    ```bash
@@ -204,6 +284,36 @@ CREATE TABLE time_sessions (
    ```bash
    git push origin feature/your-feature
    ```
+
+## Testing the App
+
+### Quick Start Test
+```bash
+# 1. Create a task
+curl -X POST http://localhost:4000/api/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test Task","category":"work"}'
+
+# 2. Plan it for today
+TODAY=$(date +%Y-%m-%d)
+curl -X POST http://localhost:4000/api/plans \
+  -H "Content-Type: application/json" \
+  -d "{\"task_id\":1,\"planned_date\":\"$TODAY\",\"expected_mins\":120}"
+
+# 3. Log time
+curl -X POST http://localhost:4000/api/sessions \
+  -H "Content-Type: application/json" \
+  -d "{\"task_id\":1,\"logged_date\":\"$TODAY\",\"actual_mins\":90}"
+
+# 4. View summary
+curl http://localhost:4000/api/summary?period=daily&date=$TODAY | jq .
+```
+
+### UI Test
+1. Open http://localhost:3000
+2. Go to Weekly Plan and add tasks
+3. Go to Calendar and log time
+4. Go to Dashboard and check charts/ratio colors
 
 ## Environment Variables
 
@@ -236,6 +346,34 @@ Key variables:
 docker-compose down -v
 docker-compose up
 ```
+
+## Architecture Notes
+
+### Frontend State Management
+- **Zustand stores**: `useTaskStore`, `usePlanStore`, `useSessionStore`
+- Stores are hydrated from API on page load
+- Updates are optimistic (UI changes immediately, API called in background)
+
+### Backend Design
+- **Express routes** organized by resource: tasks, plans, sessions, summary
+- **pg pool singleton** for efficient database connections
+- **express-validator** for input validation on all endpoints
+- **Date utilities** handle week/month calculations
+
+### Database
+- All queries use parameterized statements to prevent SQL injection
+- Foreign keys cascade on delete
+- Indexes on commonly-queried columns (task_id, date fields)
+
+## Known Limitations & Future Ideas
+
+- No user authentication yet (multi-user support)
+- No recurring task templates
+- No edit UI for existing tasks (only via API)
+- No export to CSV/PDF
+- No mobile-responsive design (desktop-first)
+- No time tracking timer (manual entry only)
+- No Slack/email integrations
 
 ## License
 
