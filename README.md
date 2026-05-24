@@ -1,4 +1,4 @@
-z Task Time Tracker
+Task Time Tracker
 
 A full-stack time tracking application to log daily task progress, plan weekly tasks, and visualize productivity metrics.
 
