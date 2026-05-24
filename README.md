@@ -32,6 +32,13 @@ A full-stack time tracking application to log daily task progress, plan weekly t
   - Work, Personal, Health, Learning, Other
   - Filter and group by category in dashboard
 
+- ⚠️ **Robust Error Handling**: Professional UX across all pages
+  - Loading spinners during async operations
+  - Error states with retry buttons
+  - Empty states with helpful guidance
+  - Form validation with inline feedback
+  - Disabled inputs during submission (prevents double-submit)
+
 ## Tech Stack
 
 ### Frontend
@@ -59,6 +66,7 @@ task-time-tracker/
 ├── client/                 # React frontend
 │   ├── src/
 │   │   ├── api/           # fetch wrappers for API endpoints
+│   │   ├── components/    # Reusable UI: LoadingSpinner, ErrorState, EmptyState
 │   │   ├── pages/         # Calendar, Dashboard, WeeklyPlan
 │   │   ├── store/         # Zustand stores (tasks, plans, sessions)
 │   │   ├── App.jsx        # Router setup
@@ -238,6 +246,46 @@ CREATE TABLE time_sessions (
 - Weekly view is Monday–Sunday
 - Monthly view is 1st–last day of month
 - All dates are stored in UTC and displayed in local time
+
+## User Experience Components
+
+### Loading States
+- **LoadingSpinner**: Animated spinner in 3 sizes (sm, md, lg)
+  - Appears in form submit buttons
+  - Shown during async API calls
+  - Prevents user confusion during waiting periods
+
+- **LoadingState**: Full-page loading display
+  - Large centered spinner + message
+  - Used when fetching dashboard data
+  - Graceful UX while data loads
+
+### Error Handling
+- **ErrorState**: Professional error display
+  - Red background with icon
+  - Clear error message from API
+  - "Try Again" retry button
+  - Used for API failures and network issues
+
+- **Form Validation**: Inline error messages
+  - Validates required fields
+  - Shows error above form
+  - Form inputs disabled during submission
+
+### Empty States
+- **EmptyState**: Helpful placeholder for missing data
+  - Centered with icon
+  - Clear message explaining what's missing
+  - Optional action button (e.g., "Add Task")
+  - Examples: No tasks planned, no data for period
+
+### State Management
+All pages use proper loading/error state variables:
+- `isLoading`: For form submissions and data fetch
+- `tasksLoading`: For initial task list load
+- `error`: For API-level errors
+- `formError`: For form validation errors
+- Form inputs disabled (`disabled={isLoading}`) to prevent double-submit
 
 ## Dashboard Visualizations
 
