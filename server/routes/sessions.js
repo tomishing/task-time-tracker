@@ -1,8 +1,31 @@
 import express from 'express'
-import { body, validationResult } from 'express-validator'
+import { body, query as queryValidator, validationResult } from 'express-validator'
 import { query } from '../db/index.js'
 
 const router = express.Router()
+
+router.get('/',
+  queryValidator('date').isISO8601(),
+  async (req, res, next) => {
+    const errors = validationResult(req)
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ error: 'Validation failed', details: errors.array() })
+    }
+    try {
+      const result = await query(
+        `SELECT ts.*, t.name, t.category
+         FROM time_sessions ts
+         JOIN tasks t ON ts.task_id = t.id
+         WHERE ts.logged_date = $1
+         ORDER BY ts.created_at DESC`,
+        [req.query.date]
+      )
+      res.json({ data: result.rows })
+    } catch (err) {
+      next(err)
+    }
+  }
+)
 
 router.post('/',
   body('task_id').isInt(),

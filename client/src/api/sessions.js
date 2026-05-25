@@ -1,5 +1,12 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 
+export async function getSessions(date) {
+  const res = await fetch(`${API_URL}/api/sessions?date=${date}`)
+  const json = await res.json()
+  if (json.error) throw new Error(json.error)
+  return json.data
+}
+
 export async function logSession(taskId, loggedDate, actualMins, note = '') {
   const res = await fetch(`${API_URL}/api/sessions`, {
     method: 'POST',

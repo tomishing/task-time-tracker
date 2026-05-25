@@ -3,6 +3,7 @@ import Calendar from './pages/Calendar'
 import Dashboard from './pages/Dashboard'
 import WeeklyPlan from './pages/WeeklyPlan'
 import Tasks from './pages/Tasks'
+import LogTime from './pages/LogTime'
 
 const NAV_LINKS = [
   { to: '/', label: 'Calendar', end: true },
@@ -41,6 +42,7 @@ export default function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/plan" element={<WeeklyPlan />} />
             <Route path="/tasks" element={<Tasks />} />
+            <Route path="/log/:date" element={<LogTime />} />
           </Routes>
         </main>
       </div>
