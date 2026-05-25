@@ -3,6 +3,8 @@ import { format, startOfWeek, endOfWeek, subDays, subMonths } from 'date-fns'
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -14,6 +16,11 @@ import { getSummary } from '../api/summary'
 import LoadingState from '../components/LoadingState'
 import ErrorState from '../components/ErrorState'
 import EmptyState from '../components/EmptyState'
+
+const TASK_COLORS = [
+  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
+  '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16',
+]
 
 export default function Dashboard() {
   const [period, setPeriod] = useState('weekly')
@@ -64,9 +71,6 @@ export default function Dashboard() {
     return 'border-green-300'
   }
 
-  const categoryData = summary?.by_category || []
-  const taskData = summary?.by_task || []
-
   function periodLabel() {
     if (period === 'daily') return format(date, 'EEEE, MMMM d, yyyy')
     if (period === 'weekly') {
@@ -80,6 +84,22 @@ export default function Dashboard() {
     }
     return format(date, 'MMMM yyyy')
   }
+
+  function getTaskNamesFromDayTask(byDayTask) {
+    if (!byDayTask || byDayTask.length === 0) return []
+    const names = new Set()
+    byDayTask.forEach(day => {
+      Object.keys(day).forEach(key => {
+        if (key !== 'day' && key !== 'date') names.add(key)
+      })
+    })
+    return Array.from(names).sort()
+  }
+
+  const categoryData = summary?.by_category || []
+  const taskData = summary?.by_task || []
+  const dayTaskData = summary?.by_day_task || []
+  const taskNames = getTaskNamesFromDayTask(dayTaskData)
 
   return (
     <div className="py-8">
@@ -148,6 +168,31 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+
+          {/* Weekly Line Chart */}
+          {period === 'weekly' && dayTaskData.length > 0 && taskNames.length > 0 && (
+            <div className="bg-white rounded-lg shadow p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Daily Task Progress</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={dayTaskData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {taskNames.map((name, idx) => (
+                    <Line
+                      key={name}
+                      type="monotone"
+                      dataKey={name}
+                      stroke={TASK_COLORS[idx % TASK_COLORS.length]}
+                      connectNulls
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
 
           {/* Charts */}
           <div className="grid grid-cols-2 gap-8 mb-8">

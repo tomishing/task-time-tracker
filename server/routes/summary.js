@@ -103,16 +103,55 @@ router.get('/',
         ratio: row.ratio
       }))
 
-      res.json({
-        data: {
-          period,
-          total_actual_mins: parseInt(totalActual),
-          total_expected_mins: parseInt(totalExpected),
-          ratio,
-          by_category: byCategory,
-          by_task: byTask
+      // By day and task (for line chart in weekly view)
+      let byDayTask = null
+      if (period === 'weekly') {
+        const dayTaskResult = await query(
+          `SELECT ts.logged_date, t.name,
+                  COALESCE(SUM(ts.actual_mins), 0)::int as actual_mins
+           FROM time_sessions ts
+           JOIN tasks t ON ts.task_id = t.id
+           WHERE ts.logged_date >= $1 AND ts.logged_date <= $2
+           GROUP BY ts.logged_date, t.name, t.id
+           ORDER BY ts.logged_date, t.name`,
+          [startDate, endDate]
+        )
+
+        // Build data structure for line chart: one object per day
+        const dayMap = new Map()
+        const allDates = []
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(startDate)
+          d.setDate(d.getDate() + i)
+          const dateStr = d.toISOString().split('T')[0]
+          const dayName = d.toLocaleDateString('en-US', { weekday: 'short' })
+          dayMap.set(dateStr, { day: dayName, date: dateStr })
+          allDates.push(dateStr)
         }
-      })
+
+        dayTaskResult.rows.forEach(row => {
+          if (dayMap.has(row.logged_date)) {
+            dayMap.get(row.logged_date)[row.name] = row.actual_mins
+          }
+        })
+
+        byDayTask = allDates.map(date => dayMap.get(date))
+      }
+
+      const response = {
+        period,
+        total_actual_mins: parseInt(totalActual),
+        total_expected_mins: parseInt(totalExpected),
+        ratio,
+        by_category: byCategory,
+        by_task: byTask
+      }
+
+      if (byDayTask !== null) {
+        response.by_day_task = byDayTask
+      }
+
+      res.json({ data: response })
     } catch (err) {
       next(err)
     }
