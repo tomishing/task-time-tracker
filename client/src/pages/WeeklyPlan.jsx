@@ -9,7 +9,7 @@ import ErrorState from '../components/ErrorState'
 import EmptyState from '../components/EmptyState'
 
 export default function WeeklyPlan() {
-  const [weekStart, setWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
+  const [weekStart, setWeekStart] = useState(startOfWeek(new Date()))
   const [isLoading, setIsLoading] = useState(false)
   const [tasksLoading, setTasksLoading] = useState(true)
   const [formData, setFormData] = useState({ task_id: '', planned_date: '', expected_mins: '' })
@@ -126,7 +126,7 @@ export default function WeeklyPlan() {
             ← Prev Week
           </button>
           <button
-            onClick={() => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 1 }))}
+            onClick={() => setWeekStart(startOfWeek(new Date()))}
             className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
           >
             This Week
