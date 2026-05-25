@@ -96,7 +96,7 @@ export default function Calendar() {
   const paddingDays = Array(firstDayOfWeek).fill(null)
   const calendarDays = [...paddingDays, ...daysInMonth]
 
-  const plannedTasks = selectedDate ? plans.filter(p => p.planned_date === format(selectedDate, 'yyyy-MM-dd')) : []
+  const plannedTasks = selectedDate ? plans.filter(p => p.planned_date.slice(0, 10) === format(selectedDate, 'yyyy-MM-dd')) : []
 
   return (
     <div className="py-8">
@@ -150,9 +150,9 @@ export default function Calendar() {
               {day && (
                 <>
                   <div className="font-semibold text-gray-900">{format(day, 'd')}</div>
-                  {plans.filter(p => p.planned_date === format(day, 'yyyy-MM-dd')).length > 0 && (
+                  {plans.filter(p => p.planned_date.slice(0, 10) === format(day, 'yyyy-MM-dd')).length > 0 && (
                     <div className="text-xs text-gray-500 mt-1">
-                      {plans.filter(p => p.planned_date === format(day, 'yyyy-MM-dd')).length} planned
+                      {plans.filter(p => p.planned_date.slice(0, 10) === format(day, 'yyyy-MM-dd')).length} planned
                     </div>
                   )}
                 </>

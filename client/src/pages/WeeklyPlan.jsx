@@ -108,7 +108,7 @@ export default function WeeklyPlan() {
     }
   }
 
-  const plansForDate = (date) => plans.filter(p => p.planned_date === format(date, 'yyyy-MM-dd'))
+  const plansForDate = (date) => plans.filter(p => p.planned_date.slice(0, 10) === format(date, 'yyyy-MM-dd'))
   const totalMinutesForDay = (date) =>
     plansForDate(date).reduce((sum, p) => sum + p.expected_mins, 0)
 
