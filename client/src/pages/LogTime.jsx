@@ -106,8 +106,29 @@ export default function LogTime() {
   const totalLogged = sessions.reduce((sum, s) => sum + s.actual_mins, 0)
   const totalPlanned = plans.reduce((sum, p) => sum + p.expected_mins, 0)
 
+  // Merge plans and sessions into unified rows keyed by task_id
+  const allTaskIds = [...new Set([
+    ...plans.map(p => p.task_id),
+    ...sessions.map(s => s.task_id),
+  ])]
+
+  const tableRows = allTaskIds.map(taskId => {
+    const plan = plans.find(p => p.task_id === taskId)
+    const taskSessions = sessions.filter(s => s.task_id === taskId)
+    const task = tasks.find(t => t.id === taskId)
+    return {
+      taskId,
+      name: plan?.name ?? task?.name ?? '—',
+      category: plan?.category ?? task?.category ?? 'other',
+      planned: plan?.expected_mins ?? null,
+      planId: plan?.id ?? null,
+      sessions: taskSessions,
+      actual: taskSessions.reduce((sum, s) => sum + s.actual_mins, 0),
+    }
+  })
+
   return (
-    <div className="py-8 max-w-2xl mx-auto">
+    <div className="py-8 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button
@@ -129,55 +150,20 @@ export default function LogTime() {
       ) : (
         <div className="space-y-6">
 
-          {/* Planned Tasks */}
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">Planned Tasks</h2>
-              <span className="text-sm text-gray-500">{totalPlanned} mins planned</span>
-            </div>
-            {plans.length === 0 ? (
-              <EmptyState
-                title="No tasks planned"
-                description="Add tasks for this day in Weekly Plan."
-                action={() => navigate('/plan')}
-                actionText="Go to Weekly Plan"
-              />
-            ) : (
-              <ul className="divide-y divide-gray-100">
-                {plans.map(plan => (
-                  <li
-                    key={plan.id}
-                    className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
-                    onClick={() => prefillFromPlan(plan)}
-                    title="Click to pre-fill form"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[plan.category]}`}>
-                        {plan.category}
-                      </span>
-                      <span className="text-gray-900 font-medium text-sm">{plan.name}</span>
-                    </div>
-                    <span className="text-sm text-gray-500">{plan.expected_mins} mins</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
           {/* Log Time Form */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="font-semibold text-gray-900 mb-4">Log Actual Time</h2>
-            <p className="text-xs text-gray-500 mb-4">Click a planned task above to pre-fill the form.</p>
+            <h2 className="font-semibold text-gray-900 mb-1">Log Actual Time</h2>
+            <p className="text-xs text-gray-500 mb-4">Click a row in the table below to pre-fill.</p>
 
             {formError && <ErrorState error={formError} />}
 
-            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-              <div>
+            <form onSubmit={handleSubmit} className="grid grid-cols-5 gap-3 mt-4 items-end">
+              <div className="col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Task</label>
                 <select
                   value={form.task_id}
                   onChange={e => setForm(f => ({ ...f, task_id: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 text-sm"
                   disabled={isSubmitting}
                 >
                   <option value="">Select a task</option>
@@ -188,27 +174,27 @@ export default function LogTime() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Actual Minutes</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Minutes</label>
                 <input
                   type="number"
                   min="1"
                   step="15"
                   value={form.actual_mins}
                   onChange={e => setForm(f => ({ ...f, actual_mins: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 text-sm"
                   placeholder="e.g. 90"
                   disabled={isSubmitting}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Note (optional)</label>
-                <textarea
+                <label className="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                <input
+                  type="text"
                   value={form.note}
                   onChange={e => setForm(f => ({ ...f, note: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
-                  placeholder="What did you work on?"
-                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 text-sm"
+                  placeholder="Optional"
                   disabled={isSubmitting}
                 />
               </div>
@@ -216,48 +202,108 @@ export default function LogTime() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 font-medium"
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2 font-medium text-sm"
               >
                 {isSubmitting && <LoadingSpinner size="sm" />}
-                {isSubmitting ? 'Saving...' : 'Log Time'}
+                {isSubmitting ? 'Saving...' : 'Log'}
               </button>
             </form>
           </div>
 
-          {/* Logged Sessions */}
+          {/* Unified Table */}
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="font-semibold text-gray-900">Logged Today</h2>
-              <span className="text-sm text-gray-500">{totalLogged} mins total</span>
+              <h2 className="font-semibold text-gray-900">Tasks</h2>
+              <span className="text-sm text-gray-500">
+                {totalLogged} / {totalPlanned} mins logged
+              </span>
             </div>
-            {sessions.length === 0 ? (
-              <EmptyState title="Nothing logged yet" description="Use the form above to log your first entry." />
+
+            {tableRows.length === 0 ? (
+              <EmptyState
+                title="No tasks planned"
+                description="Add tasks for this day in Weekly Plan."
+                action={() => navigate('/plan')}
+                actionText="Go to Weekly Plan"
+              />
             ) : (
-              <ul className="divide-y divide-gray-100">
-                {sessions.map(session => (
-                  <li key={session.id} className="flex items-start justify-between px-6 py-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[session.category] || CATEGORY_COLORS.other}`}>
-                          {session.category}
-                        </span>
-                        <span className="font-medium text-gray-900 text-sm">{session.name}</span>
-                        <span className="text-sm text-gray-600">{session.actual_mins} mins</span>
-                      </div>
-                      {session.note && (
-                        <p className="text-xs text-gray-500 mt-1 ml-0">{session.note}</p>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDelete(session.id)}
-                      disabled={deletingId === session.id}
-                      className="flex items-center gap-1 text-sm text-red-500 hover:text-red-700 disabled:opacity-50 ml-4"
-                    >
-                      {deletingId === session.id ? <LoadingSpinner size="sm" /> : 'Delete'}
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Planned Task</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Planned</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actual</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Sessions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map(row => (
+                    <>
+                      <tr
+                        key={row.taskId}
+                        onClick={() => row.planned !== null && prefillFromPlan({ task_id: row.taskId, expected_mins: row.planned })}
+                        className={`border-b border-gray-100 ${row.planned !== null ? 'cursor-pointer hover:bg-blue-50' : ''}`}
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${CATEGORY_COLORS[row.category]}`}>
+                              {row.category}
+                            </span>
+                            <span className="font-medium text-gray-900">{row.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-right text-gray-600">
+                          {row.planned !== null ? `${row.planned}` : <span className="text-gray-400">—</span>}
+                        </td>
+                        <td className="px-6 py-4 text-right font-semibold">
+                          {row.actual > 0 ? (
+                            <span className={
+                              row.planned !== null && row.actual > row.planned * 1.5
+                                ? 'text-red-600'
+                                : row.planned !== null && row.actual > row.planned
+                                ? 'text-amber-600'
+                                : 'text-green-600'
+                            }>
+                              {row.actual}
+                            </span>
+                          ) : (
+                            <span className="text-gray-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right text-gray-500">
+                          {row.sessions.length > 0 ? row.sessions.length : '—'}
+                        </td>
+                      </tr>
+                      {row.sessions.map(session => (
+                        <tr key={session.id} className="bg-gray-50 border-b border-gray-100">
+                          <td className="pl-14 pr-6 py-2 text-xs text-gray-500 italic">
+                            {session.note || 'No note'}
+                          </td>
+                          <td />
+                          <td className="px-6 py-2 text-right text-xs text-gray-600">{session.actual_mins}</td>
+                          <td className="px-6 py-2 text-right">
+                            <button
+                              onClick={() => handleDelete(session.id)}
+                              disabled={deletingId === session.id}
+                              className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
+                            >
+                              {deletingId === session.id ? <LoadingSpinner size="sm" /> : 'Delete'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50 border-t-2 border-gray-200">
+                  <tr>
+                    <td className="px-6 py-3 text-sm font-semibold text-gray-700">Total</td>
+                    <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalPlanned}</td>
+                    <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalLogged}</td>
+                    <td />
+                  </tr>
+                </tfoot>
+              </table>
             )}
           </div>
 
