@@ -27,8 +27,6 @@ export default function LogTime() {
   const [tasks, setTasks] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [pageError, setPageError] = useState('')
-  const [deletingId, setDeletingId] = useState(null)
-
   // Inline edit state
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [editValue, setEditValue] = useState('')
@@ -100,19 +98,6 @@ export default function LogTime() {
   function handleKeyDown(e, row) {
     if (e.key === 'Enter') saveEdit(row)
     if (e.key === 'Escape') cancelEdit()
-  }
-
-  async function handleDelete(id) {
-    if (!confirm('Delete this time log?')) return
-    setDeletingId(id)
-    try {
-      await deleteSession(id)
-      setSessions(prev => prev.filter(s => s.id !== id))
-    } catch (err) {
-      setPageError(err.message || 'Failed to delete session')
-    } finally {
-      setDeletingId(null)
-    }
   }
 
   const displayDate = (() => {
@@ -187,7 +172,6 @@ export default function LogTime() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Planned Task</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Planned</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actual</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Sessions</th>
                 </tr>
               </thead>
               <tbody>
@@ -236,30 +220,7 @@ export default function LogTime() {
                         )}
                       </td>
 
-                      <td className="px-6 py-4 text-right text-gray-500">
-                        {row.sessions.length > 0 ? row.sessions.length : '—'}
-                      </td>
                     </tr>
-
-                    {/* Session sub-rows */}
-                    {row.sessions.map(session => (
-                      <tr key={session.id} className="bg-gray-50 border-b border-gray-100">
-                        <td className="pl-14 pr-6 py-2 text-xs text-gray-500 italic">
-                          {session.note || 'No note'}
-                        </td>
-                        <td />
-                        <td className="px-6 py-2 text-right text-xs text-gray-600">{session.actual_mins}</td>
-                        <td className="px-6 py-2 text-right">
-                          <button
-                            onClick={() => handleDelete(session.id)}
-                            disabled={deletingId === session.id}
-                            className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
-                          >
-                            {deletingId === session.id ? <LoadingSpinner size="sm" /> : 'Delete'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
                   </>
                 ))}
               </tbody>
@@ -268,7 +229,6 @@ export default function LogTime() {
                   <td className="px-6 py-3 text-sm font-semibold text-gray-700">Total</td>
                   <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalPlanned}</td>
                   <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalLogged}</td>
-                  <td />
                 </tr>
               </tfoot>
             </table>
