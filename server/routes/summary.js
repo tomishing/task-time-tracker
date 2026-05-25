@@ -138,6 +138,37 @@ router.get('/',
         byDayTask = allDates.map(date => dayMap.get(date))
       }
 
+      // By task and week (for clustered bar chart in monthly view)
+      let byWeekTask = null
+      if (period === 'monthly') {
+        const weekTaskResult = await query(
+          `SELECT t.name,
+                  CASE
+                    WHEN EXTRACT(DAY FROM ts.logged_date) <= 7  THEN 'Week 1'
+                    WHEN EXTRACT(DAY FROM ts.logged_date) <= 14 THEN 'Week 2'
+                    WHEN EXTRACT(DAY FROM ts.logged_date) <= 21 THEN 'Week 3'
+                    ELSE 'Week 4'
+                  END as week,
+                  SUM(ts.actual_mins)::int as actual_mins
+           FROM time_sessions ts
+           JOIN tasks t ON ts.task_id = t.id
+           WHERE ts.logged_date >= $1 AND ts.logged_date <= $2
+           GROUP BY t.name, t.id, week
+           ORDER BY t.name, week`,
+          [startDate, endDate]
+        )
+
+        // Pivot into { name, 'Week 1': N, 'Week 2': N, ... } per task
+        const taskMap = new Map()
+        weekTaskResult.rows.forEach(row => {
+          if (!taskMap.has(row.name)) {
+            taskMap.set(row.name, { name: row.name })
+          }
+          taskMap.get(row.name)[row.week] = row.actual_mins
+        })
+        byWeekTask = Array.from(taskMap.values())
+      }
+
       const response = {
         period,
         total_actual_mins: parseInt(totalActual),
@@ -147,9 +178,8 @@ router.get('/',
         by_task: byTask
       }
 
-      if (byDayTask !== null) {
-        response.by_day_task = byDayTask
-      }
+      if (byDayTask !== null) response.by_day_task = byDayTask
+      if (byWeekTask !== null) response.by_week_task = byWeekTask
 
       res.json({ data: response })
     } catch (err) {

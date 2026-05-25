@@ -100,6 +100,10 @@ export default function Dashboard() {
   const taskData = summary?.by_task || []
   const dayTaskData = summary?.by_day_task || []
   const taskNames = getTaskNamesFromDayTask(dayTaskData)
+  const weekTaskData = summary?.by_week_task || []
+
+  const WEEK_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+  const WEEKS = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
 
   return (
     <div className="py-8">
@@ -190,6 +194,25 @@ export default function Dashboard() {
                     />
                   ))}
                 </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Monthly clustered bar chart */}
+          {period === 'monthly' && weekTaskData.length > 0 && (
+            <div className="bg-white rounded-lg shadow p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Actual Time by Task and Week</h2>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={weekTaskData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" angle={-20} textAnchor="end" height={60} interval={0} />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {WEEKS.map((week, idx) => (
+                    <Bar key={week} dataKey={week} fill={WEEK_COLORS[idx]} />
+                  ))}
+                </BarChart>
               </ResponsiveContainer>
             </div>
           )}
