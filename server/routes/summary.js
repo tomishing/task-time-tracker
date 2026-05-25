@@ -107,13 +107,13 @@ router.get('/',
       let byDayTask = null
       if (period === 'weekly') {
         const dayTaskResult = await query(
-          `SELECT ts.logged_date, t.name,
+          `SELECT ts.logged_date::text as logged_date, t.name,
                   COALESCE(SUM(ts.actual_mins), 0)::int as actual_mins
            FROM time_sessions ts
            JOIN tasks t ON ts.task_id = t.id
            WHERE ts.logged_date >= $1 AND ts.logged_date <= $2
-           GROUP BY ts.logged_date, t.name, t.id
-           ORDER BY ts.logged_date, t.name`,
+           GROUP BY ts.logged_date::text, t.name, t.id
+           ORDER BY ts.logged_date::text, t.name`,
           [startDate, endDate]
         )
 
