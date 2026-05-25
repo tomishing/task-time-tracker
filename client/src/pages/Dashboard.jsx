@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { format, subDays, subMonths } from 'date-fns'
+import { format, startOfWeek, endOfWeek, subDays, subMonths } from 'date-fns'
 import {
   BarChart,
   Bar,
@@ -67,10 +67,27 @@ export default function Dashboard() {
   const categoryData = summary?.by_category || []
   const taskData = summary?.by_task || []
 
+  function periodLabel() {
+    if (period === 'daily') return format(date, 'EEEE, MMMM d, yyyy')
+    if (period === 'weekly') {
+      const start = startOfWeek(date)
+      const end = endOfWeek(date)
+      if (format(start, 'yyyy') !== format(end, 'yyyy'))
+        return `${format(start, 'MMM d, yyyy')} – ${format(end, 'MMM d, yyyy')}`
+      if (format(start, 'MMM') !== format(end, 'MMM'))
+        return `${format(start, 'MMM d')} – ${format(end, 'MMM d, yyyy')}`
+      return `${format(start, 'MMM d')} – ${format(end, 'd, yyyy')}`
+    }
+    return format(date, 'MMMM yyyy')
+  }
+
   return (
     <div className="py-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500 mt-1">{periodLabel()}</p>
+        </div>
         <div className="flex gap-2">
           {['daily', 'weekly', 'monthly'].map(p => (
             <button
