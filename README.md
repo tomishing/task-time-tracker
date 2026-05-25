@@ -1,43 +1,49 @@
-Task Time Tracker
+# Task Time Tracker
 
 A full-stack time tracking application to log daily task progress, plan weekly tasks, and visualize productivity metrics.
 
 ## Features
 
-- 📅 **Calendar View**: Click any date to log actual time spent on tasks
-  - See all planned tasks for a day
-  - Log time with optional notes
-  - Quick task selection from master list
+- **Calendar View**: Click any date to see planned tasks and navigate to the log page
+  - Month navigation (Prev / Today / Next)
+  - Task chips on each calendar day (up to 3 shown, +N more)
+  - Side panel shows the full task list for the selected date
 
-- 📊 **Dashboard**: Visualize productivity with Recharts
+- **Log Time**: Dedicated page per date for recording actual time
+  - Table of planned tasks with Planned and Actual columns
+  - Click any value in the Actual column to edit inline
+  - Actual time is color-coded against the plan (green / amber / red)
+  - Totals row shows planned vs. logged minutes
+
+- **Dashboard**: Visualize productivity with Recharts
   - Toggle between Daily, Weekly, and Monthly views
+  - Date label shows the exact date, week range, or month for the selected period
   - Bar charts by category and by task
   - Summary cards showing totals and ratio
   - Task breakdown table with color-coded ratios
-  - Ratio coloring: Green (≤100%), Amber (100-150%), Red (>150%)
+  - Ratio coloring: Green (≤100%), Amber (100–150%), Red (>150%)
 
-- 📋 **Weekly Plan**: Pre-plan expected time for each day
-  - Week navigation (Prev/Next/This Week)
-  - Add tasks with expected minutes
-  - 7-day grid showing all planned tasks
+- **Weekly Plan**: Pre-plan expected time for each day
+  - Week navigation (Prev / This Week / Next)
+  - Add tasks with expected minutes per day
+  - 7-day grid (Sunday–Saturday) showing all planned tasks
   - Inline editing of expected minutes
-  - Weekly summary with totals and averages
+  - Delete planned tasks from any day
 
-- 📈 **Ratio Tracking**: Compare actual vs. expected time
+- **Tasks**: Manage the master task list
+  - Add tasks with name and category
+  - Delete tasks (cascades to plans and sessions)
+  - Category badges: Work, Personal, Health, Learning, Other
+
+- **Ratio Tracking**: Compare actual vs. expected time
   - Displayed as percentage (e.g., 120%)
   - Aggregated by category, by task, and overall
   - Visual indicators for over/under target
 
-- 🏷️ **Task Categories**: Organize tasks by type
-  - Work, Personal, Health, Learning, Other
-  - Filter and group by category in dashboard
-
-- ⚠️ **Robust Error Handling**: Professional UX across all pages
+- **Robust Error Handling**: Professional UX across all pages
   - Loading spinners during async operations
   - Error states with retry buttons
   - Empty states with helpful guidance
-  - Form validation with inline feedback
-  - Disabled inputs during submission (prevents double-submit)
 
 ## Tech Stack
 
@@ -67,7 +73,7 @@ task-time-tracker/
 │   ├── src/
 │   │   ├── api/           # fetch wrappers for API endpoints
 │   │   ├── components/    # Reusable UI: LoadingSpinner, ErrorState, EmptyState
-│   │   ├── pages/         # Calendar, Dashboard, WeeklyPlan
+│   │   ├── pages/         # Calendar, Dashboard, WeeklyPlan, Tasks, LogTime
 │   │   ├── store/         # Zustand stores (tasks, plans, sessions)
 │   │   ├── App.jsx        # Router setup
 │   │   └── index.css      # Tailwind imports
@@ -93,7 +99,7 @@ task-time-tracker/
 
 ### Setup
 
-1. **Clone & install:**
+1. **Clone & configure:**
    ```bash
    git clone https://github.com/tomishing/task-time-tracker.git
    cd task-time-tracker
@@ -102,7 +108,7 @@ task-time-tracker/
 
 2. **Start with Docker:**
    ```bash
-   docker-compose up
+   docker compose up
    ```
 
 3. **Open in browser:**
@@ -160,6 +166,7 @@ All responses use `{ data, error }` envelope format.
 - `DELETE /api/plans/:id` — Remove plan
 
 ### Time Sessions
+- `GET /api/sessions?date=YYYY-MM-DD` — Sessions for a date
 - `POST /api/sessions` — Log time `{ task_id, logged_date, actual_mins, note }`
 - `DELETE /api/sessions/:id` — Delete session
 
@@ -205,27 +212,27 @@ CREATE TABLE time_sessions (
 ## User Workflows
 
 ### 1. Plan Your Week
-1. Go to Weekly Plan page
-2. Click "Add Task to Week" form
-3. Select task, date, and expected minutes
-4. View your plan in the 7-day grid
-5. Edit expected minutes inline as needed
+1. Go to **Tasks** and add tasks to the master list
+2. Go to **Weekly Plan**
+3. Select a task, pick a day, and set expected minutes
+4. Edit expected minutes inline as plans change
 
 ### 2. Log Your Time (Daily)
-1. Go to Calendar page
-2. Click a date to open the side panel
-3. See all planned tasks for that day
-4. Select a task and enter actual minutes
-5. Add optional notes and submit
+1. Go to **Calendar** and click a date
+2. Side panel shows all planned tasks for that day
+3. Click **Log Time for This Day** to open the log page
+4. Click any value in the **Actual** column to edit it inline
+5. Press Enter or click away to save
 
 ### 3. Review Progress
-1. Go to Dashboard page
+1. Go to **Dashboard**
 2. Toggle between Daily, Weekly, or Monthly views
-3. Check your ratio in the summary card:
-   - **Green (≤100%)**: You're on or under target
-   - **Amber (100-150%)**: You're over-invested in this task
-   - **Red (>150%)**: You spent way more than planned
-4. Examine task breakdown table for details
+3. Check the date label to confirm the period you're viewing
+4. Check your ratio in the summary card:
+   - **Green (≤100%)**: On or under target
+   - **Amber (100–150%)**: Over-invested in this task
+   - **Red (>150%)**: Spent much more than planned
+5. Examine the task breakdown table for details
 
 ## Key Concepts
 
@@ -237,55 +244,14 @@ CREATE TABLE time_sessions (
 
 **Color Coding:**
 - **≤100%** (Green) — On target
-- **100-150%** (Amber) — Over by up to 50%
+- **100–150%** (Amber) — Over by up to 50%
 - **>150%** (Red) — Over by more than 50%
 
 ### Date Handling
 - Frontend uses `date-fns` for date manipulation
 - Database uses `DATE` type (no timezone needed for dates)
-- Weekly view is Monday–Sunday
-- Monthly view is 1st–last day of month
-- All dates are stored in UTC and displayed in local time
-
-## User Experience Components
-
-### Loading States
-- **LoadingSpinner**: Animated spinner in 3 sizes (sm, md, lg)
-  - Appears in form submit buttons
-  - Shown during async API calls
-  - Prevents user confusion during waiting periods
-
-- **LoadingState**: Full-page loading display
-  - Large centered spinner + message
-  - Used when fetching dashboard data
-  - Graceful UX while data loads
-
-### Error Handling
-- **ErrorState**: Professional error display
-  - Red background with icon
-  - Clear error message from API
-  - "Try Again" retry button
-  - Used for API failures and network issues
-
-- **Form Validation**: Inline error messages
-  - Validates required fields
-  - Shows error above form
-  - Form inputs disabled during submission
-
-### Empty States
-- **EmptyState**: Helpful placeholder for missing data
-  - Centered with icon
-  - Clear message explaining what's missing
-  - Optional action button (e.g., "Add Task")
-  - Examples: No tasks planned, no data for period
-
-### State Management
-All pages use proper loading/error state variables:
-- `isLoading`: For form submissions and data fetch
-- `tasksLoading`: For initial task list load
-- `error`: For API-level errors
-- `formError`: For form validation errors
-- Form inputs disabled (`disabled={isLoading}`) to prevent double-submit
+- Week runs Sunday–Saturday on both client and server
+- Monthly view covers the 1st through last day of the month
 
 ## Dashboard Visualizations
 
@@ -294,105 +260,48 @@ All pages use proper loading/error state variables:
 - **Total Expected**: Total minutes planned in the period
 - **Ratio**: Actual ÷ Expected, with color-coded border
 
+### Period Date Label
+- **Daily**: Full date — e.g., `Sunday, May 24, 2026`
+- **Weekly**: Date range — e.g., `May 24 – May 30, 2026`
+- **Monthly**: Month and year — e.g., `May 2026`
+
 ### Bar Charts
 - **By Category**: Groups tasks by category (work, personal, health, etc.)
-  - Blue bars = actual time
-  - Gray bars = expected time
-- **By Task**: Individual task breakdown
-  - Useful for identifying which tasks take longer than planned
+  - Blue bars = actual time, gray bars = expected time
+- **By Task**: Individual task breakdown — useful for spotting which tasks run long
 
 ### Task Table
-- Sortable by task name, actual, expected, or ratio
-- Color-coded ratio cells:
-  - Green background = on target
-  - Amber background = over target
-  - Red background = far over target
+- Color-coded ratio cells: green / amber / red backgrounds
 - Quick reference for task-level analysis
-
-## Development Workflow
-
-1. **Create a feature branch:**
-   ```bash
-   git checkout -b feature/your-feature
-   ```
-
-2. **Make changes** and test locally:
-   ```bash
-   docker compose up -d
-   # Make your changes
-   # Vite will hot-reload automatically
-   ```
-
-3. **Commit with descriptive message:**
-   ```bash
-   git commit -m "Add feature description"
-   ```
-
-4. **Push and create PR:**
-   ```bash
-   git push origin feature/your-feature
-   ```
-
-## Testing the App
-
-### Quick Start Test
-```bash
-# 1. Create a task
-curl -X POST http://localhost:4000/api/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test Task","category":"work"}'
-
-# 2. Plan it for today
-TODAY=$(date +%Y-%m-%d)
-curl -X POST http://localhost:4000/api/plans \
-  -H "Content-Type: application/json" \
-  -d "{\"task_id\":1,\"planned_date\":\"$TODAY\",\"expected_mins\":120}"
-
-# 3. Log time
-curl -X POST http://localhost:4000/api/sessions \
-  -H "Content-Type: application/json" \
-  -d "{\"task_id\":1,\"logged_date\":\"$TODAY\",\"actual_mins\":90}"
-
-# 4. View summary
-curl http://localhost:4000/api/summary?period=daily&date=$TODAY | jq .
-```
-
-### UI Test
-1. Open http://localhost:3000
-2. Go to Weekly Plan and add tasks
-3. Go to Calendar and log time
-4. Go to Dashboard and check charts/ratio colors
 
 ## Environment Variables
 
-See `.env.example` and individual `.env.example` files in `client/` and `server/`.
+See `.env.example` for all required variables.
 
 Key variables:
 - `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD` — Database config
 - `DATABASE_URL` — Connection string for Node.js
 - `VITE_API_URL` — Frontend API endpoint (default: http://localhost:4000)
 - `PORT` — Server port (default: 4000)
-- `NODE_ENV` — Environment mode (development/production)
 
 ## Troubleshooting
 
 ### Database connection fails
-- Check `.env` has correct `POSTGRES_PASSWORD` matching docker-compose.yml
-- Ensure PostgreSQL container is running: `docker ps`
-- Check logs: `docker-compose logs db`
+- Check `.env` has the correct `POSTGRES_PASSWORD` matching docker-compose.yml
+- Ensure the PostgreSQL container is running: `docker ps`
+- Check logs: `docker compose logs db`
 
 ### Port already in use
-- Change ports in docker-compose.yml or kill the process:
-  ```bash
-  lsof -i :3000  # Frontend
-  lsof -i :4000  # API
-  lsof -i :5432  # Database
-  ```
+```bash
+lsof -i :3000  # Frontend
+lsof -i :4000  # API
+lsof -i :5432  # Database
+```
 
 ### Clear all data
 ```bash
-docker-compose down -v
-docker-compose up
+docker compose down -v
+docker compose up
 ```
 
 ## Architecture Notes
@@ -400,33 +309,17 @@ docker-compose up
 ### Frontend State Management
 - **Zustand stores**: `useTaskStore`, `usePlanStore`, `useSessionStore`
 - Stores are hydrated from API on page load
-- Updates are optimistic (UI changes immediately, API called in background)
 
 ### Backend Design
 - **Express routes** organized by resource: tasks, plans, sessions, summary
 - **pg pool singleton** for efficient database connections
 - **express-validator** for input validation on all endpoints
-- **Date utilities** handle week/month calculations
+- **Date utilities** handle week/month boundary calculations
 
 ### Database
 - All queries use parameterized statements to prevent SQL injection
-- Foreign keys cascade on delete
-- Indexes on commonly-queried columns (task_id, date fields)
-
-## Known Limitations & Future Ideas
-
-- No user authentication yet (multi-user support)
-- No recurring task templates
-- No edit UI for existing tasks (only via API)
-- No export to CSV/PDF
-- No mobile-responsive design (desktop-first)
-- No time tracking timer (manual entry only)
-- No Slack/email integrations
+- Foreign keys cascade on delete (deleting a task removes its plans and sessions)
 
 ## License
 
 MIT
-
-## Contributing
-
-Contributions welcome! Please follow the conventions in CLAUDE.md.
