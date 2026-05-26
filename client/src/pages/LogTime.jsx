@@ -30,10 +30,22 @@ export default function LogTime() {
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [editValue, setEditValue] = useState('')
   const [savingTaskId, setSavingTaskId] = useState(null)
-  const [timers, setTimers] = useState({})
+  const [timers, setTimers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('logtime_timers')
+      return saved ? JSON.parse(saved) : {}
+    } catch {
+      return {}
+    }
+  })
   const [runningTimers, setRunningTimers] = useState(new Set())
 
   useEffect(() => { fetchAll() }, [date])
+
+  // Persist timers to localStorage
+  useEffect(() => {
+    localStorage.setItem('logtime_timers', JSON.stringify(timers))
+  }, [timers])
 
   useEffect(() => {
     if (editingTaskId !== null) inputRef.current?.focus()
