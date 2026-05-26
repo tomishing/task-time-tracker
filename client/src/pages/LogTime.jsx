@@ -27,17 +27,31 @@ export default function LogTime() {
   const [tasks, setTasks] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [pageError, setPageError] = useState('')
-  // Inline edit state
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [editValue, setEditValue] = useState('')
   const [savingTaskId, setSavingTaskId] = useState(null)
+  const [timers, setTimers] = useState({})
+  const [runningTimers, setRunningTimers] = useState(new Set())
 
   useEffect(() => { fetchAll() }, [date])
 
-  // Auto-focus input when edit starts
   useEffect(() => {
     if (editingTaskId !== null) inputRef.current?.focus()
   }, [editingTaskId])
+
+  useEffect(() => {
+    if (runningTimers.size === 0) return
+    const interval = setInterval(() => {
+      setTimers(prev => {
+        const updated = { ...prev }
+        runningTimers.forEach(taskId => {
+          updated[taskId] = (updated[taskId] || 0) + 1
+        })
+        return updated
+      })
+    }, 60000)
+    return () => clearInterval(interval)
+  }, [runningTimers])
 
   async function fetchAll() {
     setIsLoading(true)
@@ -73,18 +87,13 @@ export default function LogTime() {
     setSavingTaskId(row.taskId)
     setEditingTaskId(null)
     try {
-      // Delete all existing sessions for this task on this date
       await Promise.all(row.sessions.map(s => deleteSession(s.id)))
-
       let newSessions = sessions.filter(s => s.task_id !== row.taskId)
-
-      // Create one new session if value > 0
       if (mins > 0) {
         const task = tasks.find(t => t.id === row.taskId)
         const created = await logSession(row.taskId, date, mins, '')
         newSessions = [{ ...created, name: task?.name, category: task?.category }, ...newSessions]
       }
-
       setSessions(newSessions)
     } catch (err) {
       setPageError(err.message || 'Failed to save')
@@ -98,6 +107,29 @@ export default function LogTime() {
   function handleKeyDown(e, row) {
     if (e.key === 'Enter') saveEdit(row)
     if (e.key === 'Escape') cancelEdit()
+  }
+
+  function startTimer(taskId) {
+    setRunningTimers(prev => new Set([...prev, taskId]))
+  }
+
+  function pauseTimer(taskId) {
+    setRunningTimers(prev => {
+      const next = new Set(prev)
+      next.delete(taskId)
+      return next
+    })
+  }
+
+  function stopTimer(taskId, row) {
+    pauseTimer(taskId)
+    const timerValue = timers[taskId] || 0
+    if (timerValue > 0) {
+      setEditValue(String(timerValue))
+      setEditingTaskId(null)
+      setTimers(prev => ({ ...prev, [taskId]: 0 }))
+      saveEdit(row)
+    }
   }
 
   const displayDate = (() => {
@@ -135,8 +167,7 @@ export default function LogTime() {
   }
 
   return (
-    <div className="py-8 max-w-3xl mx-auto">
-      {/* Header */}
+    <div className="py-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-4 mb-8">
         <button onClick={() => navigate('/')} className="text-gray-400 hover:text-gray-600">
           ← Back
@@ -166,17 +197,18 @@ export default function LogTime() {
               actionText="Go to Weekly Plan"
             />
           ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Planned Task</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Planned</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actual</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableRows.map(row => (
-                  <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Planned Task</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Planned</th>
+                    <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">Timer</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actual</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableRows.map(row => (
                     <tr key={row.taskId} className="border-b border-gray-100 hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
@@ -191,7 +223,37 @@ export default function LogTime() {
                         {row.planned !== null ? row.planned : <span className="text-gray-400">—</span>}
                       </td>
 
-                      {/* Inline-editable Actual cell */}
+                      <td className="px-6 py-4 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <span className="text-sm font-medium text-gray-700 min-w-12">
+                            {timers[row.taskId] || 0}m
+                          </span>
+                          {runningTimers.has(row.taskId) ? (
+                            <>
+                              <button
+                                onClick={() => pauseTimer(row.taskId)}
+                                className="px-2 py-1 text-xs bg-amber-500 text-white rounded hover:bg-amber-600 transition"
+                              >
+                                Pause
+                              </button>
+                              <button
+                                onClick={() => stopTimer(row.taskId, row)}
+                                className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition"
+                              >
+                                Stop
+                              </button>
+                            </>
+                          ) : (
+                            <button
+                              onClick={() => startTimer(row.taskId)}
+                              className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition"
+                            >
+                              Start
+                            </button>
+                          )}
+                        </div>
+                      </td>
+
                       <td className="px-6 py-4 text-right">
                         {savingTaskId === row.taskId ? (
                           <span className="flex items-center justify-end gap-1 text-gray-400">
@@ -219,21 +281,21 @@ export default function LogTime() {
                           </span>
                         )}
                       </td>
-
                     </tr>
-                  </>
-                ))}
-              </tbody>
-              <tfoot className="bg-gray-50 border-t-2 border-gray-200">
-                <tr>
-                  <td className="px-6 py-3 text-sm font-semibold text-gray-700">Total</td>
-                  <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalPlanned}</td>
-                  <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalLogged}</td>
-                </tr>
-              </tfoot>
-            </table>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50 border-t-2 border-gray-200">
+                  <tr>
+                    <td className="px-6 py-3 text-sm font-semibold text-gray-700">Total</td>
+                    <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalPlanned}</td>
+                    <td />
+                    <td className="px-6 py-3 text-right text-sm font-semibold text-gray-700">{totalLogged}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           )}
-          <p className="px-6 py-3 text-xs text-gray-400">Click any value in the Actual column to edit</p>
+          <p className="px-6 py-3 text-xs text-gray-400">Click any value in the Actual column to edit • Use Timer to count elapsed time</p>
         </div>
       )}
     </div>
