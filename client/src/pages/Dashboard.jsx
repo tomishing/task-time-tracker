@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { format, startOfWeek, endOfWeek, subDays, subMonths } from 'date-fns'
+import { format, startOfWeek, endOfWeek, subDays, addDays, subMonths, addMonths } from 'date-fns'
 import {
   BarChart,
   Bar,
@@ -112,20 +112,53 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500 mt-1">{periodLabel()}</p>
         </div>
-        <div className="flex gap-2">
-          {['daily', 'weekly', 'monthly'].map(p => (
+        <div className="flex gap-2 flex-col sm:flex-row">
+          {/* Period buttons */}
+          <div className="flex gap-1">
+            {['daily', 'weekly', 'monthly'].map(p => (
+              <button
+                key={p}
+                onClick={() => handlePeriodChange(p)}
+                className={`px-3 py-2 rounded text-sm font-medium transition ${
+                  period === p
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
+                }`}
+              >
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Date navigation */}
+          <div className="flex gap-1">
             <button
-              key={p}
-              onClick={() => handlePeriodChange(p)}
-              className={`px-4 py-2 rounded font-medium transition ${
-                period === p
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
-              }`}
+              onClick={() => {
+                if (period === 'daily') setDate(subDays(date, 1))
+                else if (period === 'weekly') setDate(subDays(date, 7))
+                else setDate(subMonths(date, 1))
+              }}
+              className="px-3 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 text-sm"
             >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
+              ← Prev
             </button>
-          ))}
+            <button
+              onClick={() => setDate(new Date())}
+              className="px-3 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 text-sm"
+            >
+              Today
+            </button>
+            <button
+              onClick={() => {
+                if (period === 'daily') setDate(addDays(date, 1))
+                else if (period === 'weekly') setDate(addDays(date, 7))
+                else setDate(addMonths(date, 1))
+              }}
+              className="px-3 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 text-sm"
+            >
+              Next →
+            </button>
+          </div>
         </div>
       </div>
 
