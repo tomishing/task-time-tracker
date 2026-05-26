@@ -4,7 +4,6 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay,
 import usePlanStore from '../store/usePlanStore'
 import { getPlans } from '../api/plans'
 import ErrorState from '../components/ErrorState'
-import EmptyState from '../components/EmptyState'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 export default function Calendar() {

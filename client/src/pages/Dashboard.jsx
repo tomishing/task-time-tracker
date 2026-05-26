@@ -15,7 +15,6 @@ import {
 import { getSummary } from '../api/summary'
 import LoadingState from '../components/LoadingState'
 import ErrorState from '../components/ErrorState'
-import EmptyState from '../components/EmptyState'
 
 const TASK_COLORS = [
   '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
