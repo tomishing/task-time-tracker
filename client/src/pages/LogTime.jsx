@@ -82,8 +82,8 @@ export default function LogTime() {
     setEditValue('')
   }
 
-  async function saveEdit(row) {
-    const mins = parseInt(editValue) || 0
+  async function saveEdit(row, value = null) {
+    const mins = value !== null ? parseInt(value) : parseInt(editValue) || 0
     setSavingTaskId(row.taskId)
     setEditingTaskId(null)
     try {
@@ -125,10 +125,8 @@ export default function LogTime() {
     pauseTimer(taskId)
     const timerValue = timers[taskId] || 0
     if (timerValue > 0) {
-      setEditValue(String(timerValue))
-      setEditingTaskId(null)
       setTimers(prev => ({ ...prev, [taskId]: 0 }))
-      saveEdit(row)
+      saveEdit(row, timerValue)
     }
   }
 
