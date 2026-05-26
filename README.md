@@ -17,7 +17,10 @@ A full-stack time tracking application to log daily task progress, plan weekly t
 
 - **Dashboard**: Visualize productivity with Recharts
   - Toggle between Daily, Weekly, and Monthly views
+  - Date navigation: Prev / Today / Next buttons for all periods
   - Date label shows the exact date, week range, or month for the selected period
+  - **Weekly view**: Line chart showing daily task progress across the week
+  - **Monthly view**: Clustered bar chart showing actual time by task and week (1st–4th)
   - Bar charts by category and by task
   - Summary cards showing totals and ratio
   - Task breakdown table with color-coded ratios
@@ -227,12 +230,16 @@ CREATE TABLE time_sessions (
 ### 3. Review Progress
 1. Go to **Dashboard**
 2. Toggle between Daily, Weekly, or Monthly views
-3. Check the date label to confirm the period you're viewing
-4. Check your ratio in the summary card:
+3. Use Prev / Today / Next to navigate to different dates
+4. Check the date label to confirm the period you're viewing
+5. Review the charts:
+   - **Weekly view**: Line chart shows daily task progress across the week
+   - **Monthly view**: Clustered bar chart shows time distribution by task and week
+6. Check your ratio in the summary card:
    - **Green (≤100%)**: On or under target
    - **Amber (100–150%)**: Over-invested in this task
    - **Red (>150%)**: Spent much more than planned
-5. Examine the task breakdown table for details
+7. Examine the task breakdown table for details
 
 ## Key Concepts
 
@@ -265,7 +272,29 @@ CREATE TABLE time_sessions (
 - **Weekly**: Date range — e.g., `May 24 – May 30, 2026`
 - **Monthly**: Month and year — e.g., `May 2026`
 
-### Bar Charts
+### Date Navigation
+- **Prev / Today / Next** buttons let you navigate between:
+  - Days (in Daily view)
+  - Weeks (in Weekly view)
+  - Months (in Monthly view)
+- Useful for reviewing historical productivity data
+
+### Line Chart (Weekly View)
+- **Daily Task Progress**: Shows actual time spent per task for each day of the week
+- X-axis: Days (Sun–Sat)
+- Y-axis: Minutes
+- Legend: Task names (one line per task with distinct colors)
+- Helps identify which tasks took longer on specific days
+
+### Clustered Bar Chart (Monthly View)
+- **Actual Time by Task and Week**: Shows how time was distributed across weeks
+- X-axis: Task names
+- Y-axis: Actual minutes
+- Legend: Week 1 (days 1–7), Week 2 (days 8–14), Week 3 (days 15–21), Week 4 (days 22–end)
+- Each task shows up to 4 bars for each week
+- Useful for seeing workload distribution across the month
+
+### Bar Charts (All Views)
 - **By Category**: Groups tasks by category (work, personal, health, etc.)
   - Blue bars = actual time, gray bars = expected time
 - **By Task**: Individual task breakdown — useful for spotting which tasks run long
