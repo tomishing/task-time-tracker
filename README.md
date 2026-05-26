@@ -10,7 +10,11 @@ A full-stack time tracking application to log daily task progress, plan weekly t
   - Side panel shows the full task list for the selected date
 
 - **Log Time**: Dedicated page per date for recording actual time
-  - Table of planned tasks with Planned and Actual columns
+  - Table of planned tasks with Planned, Timer, and Actual columns
+  - **Timer**: Per-task stopwatch with Start, Pause, and Stop buttons
+    - Increments by 1-minute intervals every 60 seconds
+    - Timer value persists across page navigation via localStorage
+    - Stop button transfers timer value to Actual column
   - Click any value in the Actual column to edit inline
   - Actual time is color-coded against the plan (green / amber / red)
   - Totals row shows planned vs. logged minutes
@@ -224,8 +228,11 @@ CREATE TABLE time_sessions (
 1. Go to **Calendar** and click a date
 2. Side panel shows all planned tasks for that day
 3. Click **Log Time for This Day** to open the log page
-4. Click any value in the **Actual** column to edit it inline
+4. For each task, you can either:
+   - **Use the Timer**: Click Start to begin counting, Pause to stop counting, Stop to transfer time to Actual
+   - **Edit Directly**: Click any value in the **Actual** column to edit it inline
 5. Press Enter or click away to save
+6. Timer values persist across page navigation—pause a timer, navigate away, and return to resume
 
 ### 3. Review Progress
 1. Go to **Dashboard**
