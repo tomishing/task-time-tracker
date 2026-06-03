@@ -225,7 +225,6 @@ export default function Dashboard() {
                       stroke={TASK_COLORS[idx % TASK_COLORS.length]}
                       fill={TASK_COLORS[idx % TASK_COLORS.length]}
                       fillOpacity={0.6}
-                      connectNulls
                     />
                   ))}
                 </AreaChart>
