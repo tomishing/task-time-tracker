@@ -3,8 +3,8 @@ import { format, startOfWeek, endOfWeek, subDays, addDays, subMonths, addMonths 
 import {
   BarChart,
   Bar,
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -210,22 +210,24 @@ export default function Dashboard() {
             <div className="bg-white rounded-lg shadow p-6 mb-8">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Daily Task Progress</h2>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={dayTaskData}>
+                <AreaChart data={dayTaskData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="day" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
                   {taskNames.map((name, idx) => (
-                    <Line
+                    <Area
                       key={name}
                       type="monotone"
                       dataKey={name}
                       stroke={TASK_COLORS[idx % TASK_COLORS.length]}
+                      fill={TASK_COLORS[idx % TASK_COLORS.length]}
+                      fillOpacity={0.2}
                       connectNulls
                     />
                   ))}
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           )}
