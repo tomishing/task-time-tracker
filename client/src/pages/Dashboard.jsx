@@ -221,9 +221,10 @@ export default function Dashboard() {
                       key={name}
                       type="monotone"
                       dataKey={name}
+                      stackId="1"
                       stroke={TASK_COLORS[idx % TASK_COLORS.length]}
                       fill={TASK_COLORS[idx % TASK_COLORS.length]}
-                      fillOpacity={0.2}
+                      fillOpacity={0.6}
                       connectNulls
                     />
                   ))}
