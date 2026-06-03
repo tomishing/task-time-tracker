@@ -97,8 +97,12 @@ export default function Dashboard() {
 
   const categoryData = summary?.by_category || []
   const taskData = summary?.by_task || []
-  const dayTaskData = summary?.by_day_task || []
-  const taskNames = getTaskNamesFromDayTask(dayTaskData)
+  const taskNames = getTaskNamesFromDayTask(summary?.by_day_task || [])
+  const dayTaskData = (summary?.by_day_task || []).map(day => {
+    const filled = { day: day.day, date: day.date }
+    taskNames.forEach(name => { filled[name] = day[name] ?? 0 })
+    return filled
+  })
   const weekTaskData = summary?.by_week_task || []
 
   const WEEK_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
