@@ -8,6 +8,7 @@ A full-stack time tracking application to log daily task progress, plan weekly t
   - Month navigation (Prev / Today / Next)
   - Task chips on each calendar day (up to 3 shown, +N more)
   - Side panel shows the full task list for the selected date
+  - Clicking a date with no tasks redirects automatically to Weekly Plan
 
 - **Log Time**: Dedicated page per date for recording actual time
   - Table of planned tasks with Planned, Timer, and Actual columns
@@ -226,6 +227,7 @@ CREATE TABLE time_sessions (
 
 ### 2. Log Your Time (Daily)
 1. Go to **Calendar** and click a date
+   - If no tasks are planned for that date, you'll be redirected to **Weekly Plan** to add some
 2. Side panel shows all planned tasks for that day
 3. Click **Log Time for This Day** to open the log page
 4. For each task, you can either:
