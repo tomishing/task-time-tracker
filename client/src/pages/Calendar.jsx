@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, addMonths, subMonths } from 'date-fns'
 import usePlanStore from '../store/usePlanStore'
@@ -17,23 +17,26 @@ export default function Calendar() {
   const plans = usePlanStore(state => state.plans)
   const setPlans = usePlanStore(state => state.setPlans)
 
-  async function fetchPlansForDate(date) {
+  async function handleDateClick(date) {
+    setSelectedDate(date)
+    setPanelOpen(true)
     setPanelLoading(true)
     setPanelError('')
     try {
       const data = await getPlans(format(date, 'yyyy-MM-dd'))
+      const dateStr = format(date, 'yyyy-MM-dd')
+      const dayPlans = data.filter(p => p.planned_date.slice(0, 10) === dateStr)
+      if (dayPlans.length === 0) {
+        setPanelOpen(false)
+        navigate('/plan')
+        return
+      }
       setPlans(data)
     } catch (err) {
       setPanelError(err.message || 'Failed to load planned tasks')
     } finally {
       setPanelLoading(false)
     }
-  }
-
-  function handleDateClick(date) {
-    setSelectedDate(date)
-    fetchPlansForDate(date)
-    setPanelOpen(true)
   }
 
   const monthStart = startOfMonth(currentDate)
@@ -142,15 +145,10 @@ export default function Calendar() {
 
             {/* Panel Body */}
             <div className="flex-1 overflow-y-auto px-6 py-4">
-              {panelError && <ErrorState error={panelError} onRetry={() => fetchPlansForDate(selectedDate)} />}
+              {panelError && <ErrorState error={panelError} onRetry={() => handleDateClick(selectedDate)} />}
 
               {panelLoading ? (
                 <div className="py-8 flex justify-center"><LoadingSpinner /></div>
-              ) : selectedDatePlans.length === 0 ? (
-                <EmptyState
-                  title="No tasks planned"
-                  description="Go to Weekly Plan to add tasks for this date."
-                />
               ) : (
                 <ul className="space-y-2">
                   {selectedDatePlans.map(plan => (
