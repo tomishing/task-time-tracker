@@ -36,54 +36,67 @@ router.get('/',
         endDate = endDate.toISOString().split('T')[0]
       }
 
-      // Totals with ratio computed in SQL
+      // Totals — aggregate each table independently to avoid cross-join inflation
       const totalResult = await query(
-        `SELECT COALESCE(SUM(ts.actual_mins), 0)::int as total_actual_mins,
-                COALESCE(SUM(wp.expected_mins), 0)::int as total_expected_mins,
-                CASE
-                  WHEN COALESCE(SUM(wp.expected_mins), 0) > 0
-                  THEN COALESCE(SUM(ts.actual_mins), 0)::float / COALESCE(SUM(wp.expected_mins), 0)
-                  ELSE NULL
-                END as ratio
-         FROM (SELECT actual_mins FROM time_sessions WHERE logged_date >= $1 AND logged_date <= $2) ts,
-              (SELECT expected_mins FROM weekly_plans WHERE planned_date >= $1 AND planned_date <= $2) wp`,
+        `SELECT
+           (SELECT COALESCE(SUM(actual_mins), 0)::int FROM time_sessions WHERE logged_date >= $1 AND logged_date <= $2) as total_actual_mins,
+           (SELECT COALESCE(SUM(expected_mins), 0)::int FROM weekly_plans WHERE planned_date >= $1 AND planned_date <= $2) as total_expected_mins`,
         [startDate, endDate]
       )
 
-      const { total_actual_mins: totalActual, total_expected_mins: totalExpected, ratio } = totalResult.rows[0]
+      const { total_actual_mins: totalActual, total_expected_mins: totalExpected } = totalResult.rows[0]
+      const ratio = totalExpected > 0 ? totalActual / totalExpected : null
 
-      // By category with ratio computed in SQL
+      // By category — pre-aggregate each table before joining to avoid row multiplication
       const categoryResult = await query(
         `SELECT t.category,
-                COALESCE(SUM(ts.actual_mins), 0)::int as actual_mins,
-                COALESCE(SUM(wp.expected_mins), 0)::int as expected_mins,
+                COALESCE(sess.actual_mins, 0)::int as actual_mins,
+                COALESCE(plan.expected_mins, 0)::int as expected_mins,
                 CASE
-                  WHEN COALESCE(SUM(wp.expected_mins), 0) > 0
-                  THEN COALESCE(SUM(ts.actual_mins), 0)::float / COALESCE(SUM(wp.expected_mins), 0)
+                  WHEN COALESCE(plan.expected_mins, 0) > 0
+                  THEN COALESCE(sess.actual_mins, 0)::float / COALESCE(plan.expected_mins, 0)
                   ELSE NULL
                 END as ratio
-         FROM tasks t
-         LEFT JOIN time_sessions ts ON t.id = ts.task_id AND ts.logged_date >= $1 AND ts.logged_date <= $2
-         LEFT JOIN weekly_plans wp ON t.id = wp.task_id AND wp.planned_date >= $1 AND wp.planned_date <= $2
-         GROUP BY t.category`,
+         FROM (SELECT DISTINCT category FROM tasks) t
+         LEFT JOIN (
+           SELECT tk.category, SUM(ts.actual_mins) as actual_mins
+           FROM time_sessions ts JOIN tasks tk ON ts.task_id = tk.id
+           WHERE ts.logged_date >= $1 AND ts.logged_date <= $2
+           GROUP BY tk.category
+         ) sess ON t.category = sess.category
+         LEFT JOIN (
+           SELECT tk.category, SUM(wp.expected_mins) as expected_mins
+           FROM weekly_plans wp JOIN tasks tk ON wp.task_id = tk.id
+           WHERE wp.planned_date >= $1 AND wp.planned_date <= $2
+           GROUP BY tk.category
+         ) plan ON t.category = plan.category`,
         [startDate, endDate]
       )
 
-      // By task with ratio computed in SQL
+      // By task — pre-aggregate each table before joining to avoid row multiplication
       const taskResult = await query(
         `SELECT t.id as task_id, t.name,
-                COALESCE(SUM(ts.actual_mins), 0)::int as actual_mins,
-                COALESCE(SUM(wp.expected_mins), 0)::int as expected_mins,
+                COALESCE(sess.actual_mins, 0)::int as actual_mins,
+                COALESCE(plan.expected_mins, 0)::int as expected_mins,
                 CASE
-                  WHEN COALESCE(SUM(wp.expected_mins), 0) > 0
-                  THEN COALESCE(SUM(ts.actual_mins), 0)::float / COALESCE(SUM(wp.expected_mins), 0)
+                  WHEN COALESCE(plan.expected_mins, 0) > 0
+                  THEN COALESCE(sess.actual_mins, 0)::float / COALESCE(plan.expected_mins, 0)
                   ELSE NULL
                 END as ratio
          FROM tasks t
-         LEFT JOIN time_sessions ts ON t.id = ts.task_id AND ts.logged_date >= $1 AND ts.logged_date <= $2
-         LEFT JOIN weekly_plans wp ON t.id = wp.task_id AND wp.planned_date >= $1 AND wp.planned_date <= $2
-         GROUP BY t.id, t.name
-         HAVING COALESCE(SUM(ts.actual_mins), 0) > 0 OR COALESCE(SUM(wp.expected_mins), 0) > 0
+         LEFT JOIN (
+           SELECT task_id, SUM(actual_mins) as actual_mins
+           FROM time_sessions
+           WHERE logged_date >= $1 AND logged_date <= $2
+           GROUP BY task_id
+         ) sess ON t.id = sess.task_id
+         LEFT JOIN (
+           SELECT task_id, SUM(expected_mins) as expected_mins
+           FROM weekly_plans
+           WHERE planned_date >= $1 AND planned_date <= $2
+           GROUP BY task_id
+         ) plan ON t.id = plan.task_id
+         WHERE COALESCE(sess.actual_mins, 0) > 0 OR COALESCE(plan.expected_mins, 0) > 0
          ORDER BY t.name`,
         [startDate, endDate]
       )
