@@ -15,8 +15,8 @@ const NAV_LINKS = [
 export default function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white border-b border-gray-200">
+      <div className="min-h-screen bg-stone-50">
+        <nav className="bg-white border-b border-stone-200">
           <div className="max-w-7xl mx-auto px-4 py-3 flex gap-1">
             {NAV_LINKS.map(({ to, label, end }) => (
               <NavLink
@@ -26,8 +26,8 @@ export default function App() {
                 className={({ isActive }) =>
                   `px-4 py-2 rounded-md text-sm font-medium transition ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-emerald-50 text-emerald-800'
+                      : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
                   }`
                 }
               >

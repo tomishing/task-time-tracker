@@ -120,19 +120,19 @@ export default function WeeklyPlan() {
         <div className="flex gap-4">
           <button
             onClick={() => setWeekStart(subWeeks(weekStart, 1))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-stone-200 rounded hover:bg-stone-300"
           >
             ← Prev Week
           </button>
           <button
             onClick={() => setWeekStart(startOfWeek(new Date()))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-stone-200 rounded hover:bg-stone-300"
           >
             This Week
           </button>
           <button
             onClick={() => setWeekStart(addWeeks(weekStart, 1))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-stone-200 rounded hover:bg-stone-300"
           >
             Next Week →
           </button>
@@ -152,7 +152,7 @@ export default function WeeklyPlan() {
             <select
               value={formData.task_id}
               onChange={e => setFormData({ ...formData, task_id: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
               disabled={isLoading || tasksLoading}
             >
               <option value="">Select task</option>
@@ -169,7 +169,7 @@ export default function WeeklyPlan() {
             <select
               value={formData.planned_date}
               onChange={e => setFormData({ ...formData, planned_date: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
               disabled={isLoading}
             >
               <option value="">Select date</option>
@@ -190,7 +190,7 @@ export default function WeeklyPlan() {
               step="15"
               value={formData.expected_mins}
               onChange={e => setFormData({ ...formData, expected_mins: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
               placeholder="e.g., 120"
               disabled={isLoading}
             />
@@ -200,7 +200,7 @@ export default function WeeklyPlan() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {isLoading && <LoadingSpinner size="sm" />}
               {isLoading ? 'Adding...' : 'Add'}
@@ -271,13 +271,13 @@ export default function WeeklyPlan() {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-600">Total Planned Minutes</p>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-3xl font-bold text-emerald-700">
               {weekDays.reduce((sum, day) => sum + totalMinutesForDay(day), 0)}
             </p>
           </div>
           <div>
             <p className="text-sm text-gray-600">Average Per Day</p>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-3xl font-bold text-emerald-700">
               {Math.round(weekDays.reduce((sum, day) => sum + totalMinutesForDay(day), 0) / 7)}
             </p>
           </div>

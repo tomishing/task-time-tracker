@@ -9,7 +9,7 @@ export default function EmptyState({ title, description, action, actionText }) {
       {action && actionText && (
         <button
           onClick={action}
-          className="px-4 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700 transition"
+          className="px-4 py-2 bg-emerald-700 text-white text-sm rounded hover:bg-emerald-800 transition"
         >
           {actionText}
         </button>

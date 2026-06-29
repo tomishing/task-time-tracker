@@ -9,7 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner'
 const CATEGORIES = ['work', 'personal', 'health', 'learning', 'other']
 
 const CATEGORY_COLORS = {
-  work: 'bg-blue-100 text-blue-800',
+  work: 'bg-emerald-100 text-emerald-800',
   personal: 'bg-purple-100 text-purple-800',
   health: 'bg-green-100 text-green-800',
   learning: 'bg-amber-100 text-amber-800',
@@ -97,13 +97,13 @@ export default function Tasks() {
             value={form.name}
             onChange={e => setForm({ ...form, name: e.target.value })}
             placeholder="Task name"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
             disabled={isSubmitting}
           />
           <select
             value={form.category}
             onChange={e => setForm({ ...form, category: e.target.value })}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:bg-gray-100"
             disabled={isSubmitting}
           >
             {CATEGORIES.map(cat => (
@@ -115,7 +115,7 @@ export default function Tasks() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-5 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
+            className="px-5 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 disabled:opacity-50 flex items-center gap-2 whitespace-nowrap"
           >
             {isSubmitting && <LoadingSpinner size="sm" />}
             {isSubmitting ? 'Adding...' : 'Add Task'}

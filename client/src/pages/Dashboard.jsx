@@ -17,8 +17,8 @@ import LoadingState from '../components/LoadingState'
 import ErrorState from '../components/ErrorState'
 
 const TASK_COLORS = [
-  '#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6',
-  '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16',
+  '#2d6a4f', '#74c69d', '#b5838d', '#e9c46a', '#8b5e3c',
+  '#52b788', '#c9a84c', '#6b9e78', '#d4a373', '#a98467',
 ]
 
 export default function Dashboard() {
@@ -105,7 +105,7 @@ export default function Dashboard() {
   })
   const weekTaskData = summary?.by_week_task || []
 
-  const WEEK_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+  const WEEK_COLORS = ['#2d6a4f', '#52b788', '#e9c46a', '#b5838d']
   const WEEKS = ['Week 1', 'Week 2', 'Week 3', 'Week 4']
 
   return (
@@ -124,8 +124,8 @@ export default function Dashboard() {
                 onClick={() => handlePeriodChange(p)}
                 className={`px-3 py-2 rounded text-sm font-medium transition ${
                   period === p
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-200 text-gray-900 hover:bg-gray-300'
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-stone-200 text-stone-900 hover:bg-stone-300'
                 }`}
               >
                 {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -141,13 +141,13 @@ export default function Dashboard() {
                 else if (period === 'weekly') setDate(subDays(date, 7))
                 else setDate(subMonths(date, 1))
               }}
-              className="px-3 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 text-sm"
+              className="px-3 py-2 bg-stone-200 text-stone-900 rounded hover:bg-stone-300 text-sm"
             >
               ← Prev
             </button>
             <button
               onClick={() => setDate(new Date())}
-              className="px-3 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 text-sm"
+              className="px-3 py-2 bg-stone-200 text-stone-900 rounded hover:bg-stone-300 text-sm"
             >
               Today
             </button>
@@ -157,7 +157,7 @@ export default function Dashboard() {
                 else if (period === 'weekly') setDate(addDays(date, 7))
                 else setDate(addMonths(date, 1))
               }}
-              className="px-3 py-2 bg-gray-200 text-gray-900 rounded hover:bg-gray-300 text-sm"
+              className="px-3 py-2 bg-stone-200 text-stone-900 rounded hover:bg-stone-300 text-sm"
             >
               Next →
             </button>
@@ -268,8 +268,8 @@ export default function Dashboard() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="actual_mins" fill="#3b82f6" name="Actual" />
-                    <Bar dataKey="expected_mins" fill="#9ca3af" name="Expected" />
+                    <Bar dataKey="actual_mins" fill="#2d6a4f" name="Actual" />
+                    <Bar dataKey="expected_mins" fill="#a98467" name="Expected" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
@@ -288,8 +288,8 @@ export default function Dashboard() {
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Bar dataKey="actual_mins" fill="#3b82f6" name="Actual" />
-                    <Bar dataKey="expected_mins" fill="#9ca3af" name="Expected" />
+                    <Bar dataKey="actual_mins" fill="#2d6a4f" name="Actual" />
+                    <Bar dataKey="expected_mins" fill="#a98467" name="Expected" />
                   </BarChart>
                 </ResponsiveContainer>
               ) : (

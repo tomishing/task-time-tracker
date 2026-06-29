@@ -10,7 +10,7 @@ import EmptyState from '../components/EmptyState'
 import LoadingSpinner from '../components/LoadingSpinner'
 
 const CATEGORY_COLORS = {
-  work: 'bg-blue-100 text-blue-800',
+  work: 'bg-emerald-100 text-emerald-800',
   personal: 'bg-purple-100 text-purple-800',
   health: 'bg-green-100 text-green-800',
   learning: 'bg-amber-100 text-amber-800',
@@ -279,12 +279,12 @@ export default function LogTime() {
                             onChange={e => setEditValue(e.target.value)}
                             onBlur={() => saveEdit(row)}
                             onKeyDown={e => handleKeyDown(e, row)}
-                            className="w-20 px-2 py-1 text-right border border-blue-400 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-20 px-2 py-1 text-right border border-emerald-500 rounded focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm"
                           />
                         ) : (
                           <span
                             onClick={() => startEdit(row)}
-                            className={`cursor-pointer px-2 py-1 rounded hover:bg-blue-50 hover:ring-1 hover:ring-blue-300 transition ${ratioColor(row.actual, row.planned)}`}
+                            className={`cursor-pointer px-2 py-1 rounded hover:bg-emerald-50 hover:ring-1 hover:ring-emerald-300 transition ${ratioColor(row.actual, row.planned)}`}
                             title="Click to edit"
                           >
                             {row.actual}

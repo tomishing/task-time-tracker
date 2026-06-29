@@ -58,19 +58,19 @@ export default function Calendar() {
         <div className="flex gap-2">
           <button
             onClick={() => setCurrentDate(subMonths(currentDate, 1))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-stone-200 rounded hover:bg-stone-300"
           >
             ← Prev
           </button>
           <button
             onClick={() => setCurrentDate(new Date())}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-stone-200 rounded hover:bg-stone-300"
           >
             Today
           </button>
           <button
             onClick={() => setCurrentDate(addMonths(currentDate, 1))}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            className="px-4 py-2 bg-stone-200 rounded hover:bg-stone-300"
           >
             Next →
           </button>
@@ -96,20 +96,20 @@ export default function Calendar() {
                 key={idx}
                 onClick={() => day && handleDateClick(day)}
                 className={`min-h-24 p-3 border border-gray-100 transition
-                  ${!day ? 'bg-gray-50' : 'cursor-pointer hover:bg-blue-50'}
-                  ${isToday ? 'bg-blue-50' : ''}
-                  ${isSelected ? 'ring-2 ring-inset ring-blue-400' : ''}
+                  ${!day ? 'bg-stone-50' : 'cursor-pointer hover:bg-emerald-50'}
+                  ${isToday ? 'bg-emerald-50' : ''}
+                  ${isSelected ? 'ring-2 ring-inset ring-emerald-500' : ''}
                 `}
               >
                 {day && (
                   <>
-                    <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-blue-700' : 'text-gray-900'}`}>
+                    <div className={`text-sm font-semibold mb-1 ${isToday ? 'text-emerald-700' : 'text-gray-900'}`}>
                       {format(day, 'd')}
                     </div>
                     {dayPlans.length > 0 && (
                       <div className="space-y-1">
                         {dayPlans.slice(0, 3).map(p => (
-                          <div key={p.id} className="text-xs bg-blue-100 text-blue-800 rounded px-1.5 py-0.5 truncate">
+                          <div key={p.id} className="text-xs bg-emerald-100 text-emerald-800 rounded px-1.5 py-0.5 truncate">
                             {p.name}
                           </div>
                         ))}
@@ -172,7 +172,7 @@ export default function Calendar() {
                     setPanelOpen(false)
                     navigate(`/log/${format(selectedDate, 'yyyy-MM-dd')}`)
                   }}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 font-medium text-sm"
+                  className="w-full px-4 py-2 bg-emerald-700 text-white rounded-md hover:bg-emerald-800 font-medium text-sm"
                 >
                   Log Time for This Day →
                 </button>
