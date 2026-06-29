@@ -34,6 +34,7 @@ A full-stack time tracking application to log daily task progress, plan weekly t
 - **Weekly Plan**: Pre-plan expected time for each day
   - Week navigation (Prev / This Week / Next)
   - Add tasks with expected minutes per day
+  - **Whole Week** option — repeat a task across all 7 days at once with one click
   - 7-day grid (Sunday–Saturday) showing all planned tasks
   - Inline editing of expected minutes
   - Delete planned tasks from any day
@@ -222,7 +223,7 @@ CREATE TABLE time_sessions (
 ### 1. Plan Your Week
 1. Go to **Tasks** and add tasks to the master list
 2. Go to **Weekly Plan**
-3. Select a task, pick a day, and set expected minutes
+3. Select a task, pick a day (or **Whole Week** to add it to all 7 days), and set expected minutes
 4. Edit expected minutes inline as plans change
 
 ### 2. Log Your Time (Daily)
