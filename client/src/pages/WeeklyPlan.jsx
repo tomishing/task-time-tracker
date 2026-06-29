@@ -65,17 +65,16 @@ export default function WeeklyPlan() {
     setIsLoading(true)
     setFormError('')
     try {
-      const newPlan = await createPlan(
-        parseInt(formData.task_id),
-        formData.planned_date,
-        parseInt(formData.expected_mins)
-      )
-
       const taskData = tasks.find(t => t.id === parseInt(formData.task_id))
-      addPlanToStore({
-        ...newPlan,
-        name: taskData?.name,
-        category: taskData?.category
+      const dates = formData.planned_date === 'whole_week'
+        ? weekDays.map(d => format(d, 'yyyy-MM-dd'))
+        : [formData.planned_date]
+
+      const created = await Promise.all(
+        dates.map(d => createPlan(parseInt(formData.task_id), d, parseInt(formData.expected_mins)))
+      )
+      created.forEach(newPlan => {
+        addPlanToStore({ ...newPlan, name: taskData?.name, category: taskData?.category })
       })
 
       setFormData({ task_id: '', planned_date: '', expected_mins: '' })
@@ -174,6 +173,7 @@ export default function WeeklyPlan() {
               disabled={isLoading}
             >
               <option value="">Select date</option>
+              <option value="whole_week">📅 Whole Week</option>
               {weekDays.map(day => (
                 <option key={format(day, 'yyyy-MM-dd')} value={format(day, 'yyyy-MM-dd')}>
                   {format(day, 'EEE, MMM d')}
