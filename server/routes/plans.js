@@ -6,24 +6,36 @@ import { getWeekStart } from '../utils/dates.js'
 const router = express.Router()
 
 router.get('/',
-  queryValidator('week').isISO8601().toDate(),
   async (req, res, next) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-      return res.status(422).json({ error: 'Validation failed', details: errors.array() })
-    }
     try {
-      const weekDate = new Date(req.query.week)
-      const weekStart = getWeekStart(weekDate)
-      const weekEnd = new Date(weekStart)
-      weekEnd.setDate(weekEnd.getDate() + 6)
+      let startDate, endDate
+
+      if (req.query.month) {
+        const d = new Date(req.query.month)
+        if (isNaN(d)) return res.status(422).json({ error: 'Invalid month date' })
+        const year = d.getUTCFullYear()
+        const month = d.getUTCMonth()
+        startDate = `${year}-${String(month + 1).padStart(2, '0')}-01`
+        const lastDay = new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
+        endDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+      } else if (req.query.week) {
+        const weekDate = new Date(req.query.week)
+        if (isNaN(weekDate)) return res.status(422).json({ error: 'Invalid week date' })
+        const weekStart = getWeekStart(weekDate)
+        const weekEnd = new Date(weekStart)
+        weekEnd.setDate(weekEnd.getDate() + 6)
+        startDate = weekStart.toISOString().split('T')[0]
+        endDate = weekEnd.toISOString().split('T')[0]
+      } else {
+        return res.status(422).json({ error: 'Provide week or month query param' })
+      }
 
       const result = await query(
         `SELECT p.*, t.name, t.category FROM weekly_plans p
          JOIN tasks t ON p.task_id = t.id
          WHERE p.planned_date >= $1 AND p.planned_date <= $2
          ORDER BY p.planned_date`,
-        [weekStart.toISOString().split('T')[0], weekEnd.toISOString().split('T')[0]]
+        [startDate, endDate]
       )
       res.json({ data: result.rows })
     } catch (err) {

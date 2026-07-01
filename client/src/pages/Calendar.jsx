@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, isSameDay, addMonths, subMonths } from 'date-fns'
 import usePlanStore from '../store/usePlanStore'
-import { getPlans } from '../api/plans'
+import { getPlans, getPlansForMonth } from '../api/plans'
 import ErrorState from '../components/ErrorState'
 import LoadingSpinner from '../components/LoadingSpinner'
 
@@ -16,6 +16,10 @@ export default function Calendar() {
 
   const plans = usePlanStore(state => state.plans)
   const setPlans = usePlanStore(state => state.setPlans)
+
+  useEffect(() => {
+    getPlansForMonth(format(currentDate, 'yyyy-MM-dd')).then(setPlans).catch(() => {})
+  }, [currentDate])
 
   async function handleDateClick(date) {
     setSelectedDate(date)

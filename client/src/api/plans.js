@@ -7,6 +7,13 @@ export async function getPlans(week) {
   return json.data
 }
 
+export async function getPlansForMonth(month) {
+  const res = await fetch(`${API_URL}/api/plans?month=${month}`)
+  const json = await res.json()
+  if (json.error) throw new Error(json.error)
+  return json.data
+}
+
 export async function createPlan(taskId, plannedDate, expectedMins) {
   const res = await fetch(`${API_URL}/api/plans`, {
     method: 'POST',
