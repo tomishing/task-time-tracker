@@ -6,7 +6,7 @@ A full-stack time tracking application to log daily task progress, plan weekly t
 
 - **Calendar View**: Click any date to see planned tasks and navigate to the log page
   - Month navigation (Prev / Today / Next)
-  - Task chips on each calendar day (up to 3 shown, +N more)
+  - Task chips on each calendar day (up to 3 shown, +N more) — loaded automatically for the full month
   - Side panel shows the full task list for the selected date
   - Clicking a date with no tasks redirects automatically to Weekly Plan
 
